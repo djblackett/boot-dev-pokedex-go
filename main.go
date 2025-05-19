@@ -34,14 +34,14 @@ func main() {
 			name:        "exit",
 			description: "Exit the Pokedex",
 			callback: func(args []string) error {
-				return commandExit(&config)
+				return commandExit()
 			},
 		},
 		"help": {
 			name:        "help",
 			description: "Displays a help message",
 			callback: func(args []string) error {
-				return commandHelp(&config)
+				return commandHelp()
 			},
 		},
 		"map": {
@@ -63,7 +63,7 @@ func main() {
 			description: "Lists pokemon in area",
 			callback: func(args []string) error {
 				if len(args) == 2 {
-					return commandExplore(&config, args[1])
+					return commandExplore(args[1])
 				}
 				fmt.Println("Command explore requires an argument")
 				return nil
@@ -74,7 +74,7 @@ func main() {
 			description: "Try to catch a pokemon",
 			callback: func(args []string) error {
 				if len(args) >= 2 {
-					return commandCatch(&config, args[1])
+					return commandCatch(args[1])
 				}
 				fmt.Println("Command catch requires an argument")
 				return nil
@@ -85,7 +85,7 @@ func main() {
 			description: "View a pokemon's information",
 			callback: func(args []string) error {
 				if len(args) >= 2 {
-					return commandInspect(&config, args[1])
+					return commandInspect(args[1])
 				}
 				fmt.Println("Command inspect requires an argument")
 				return nil
@@ -141,13 +141,13 @@ func CleanInput(text string) []string {
 	return words
 }
 
-func commandExit(config *Config) error {
+func commandExit() error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(config *Config) error {
+func commandHelp() error {
 	fmt.Println("Usage:")
 	fmt.Println()
 	for _, cmd := range commands {
@@ -245,7 +245,7 @@ func commandMapb(config *Config) error {
 	return nil
 }
 
-func commandExplore(config *Config, name string) error {
+func commandExplore(name string) error {
 	var res *http.Response
 	var err error
 	baseURL := "https://pokeapi.co/api/v2/location-area/"
@@ -301,7 +301,7 @@ func commandExplore(config *Config, name string) error {
 	return nil
 }
 
-func commandCatch(config *Config, name string) error {
+func commandCatch(name string) error {
 	baseURL := "https://pokeapi.co/api/v2/pokemon/"
 	fullURL := baseURL + name
 
@@ -334,7 +334,7 @@ func commandCatch(config *Config, name string) error {
 	return nil
 }
 
-func commandInspect(config *Config, name string) error {
+func commandInspect(name string) error {
 	pokemon, ok := pokedex[name]
 	if !ok {
 		fmt.Println("You do not have this pokemon")
@@ -359,7 +359,7 @@ func commandInspect(config *Config, name string) error {
 
 func commandPokedex() error {
 	fmt.Println("Your Pokedex:")
-	for key, _ := range pokedex {
+	for key := range pokedex {
 		fmt.Printf(" - %s\n", key)
 	}
 	return nil
