@@ -1,4 +1,4 @@
-package main
+package pokedex
 
 type LocationArea struct {
 	ID                   int                    `json:"id"`

@@ -11,12 +11,13 @@ import (
 	"time"
 
 	"github.com/djblackett/pokedex-go/internal/pokecache"
+	"github.com/djblackett/pokedex-go/internal/pokedex"
 )
 
 var commands map[string]cliCommand
 
 var cache *pokecache.Cache
-var pokedex map[string]PokemonResult
+var pokedexMap map[string]pokedex.PokemonResult
 
 func main() {
 	bufio := bufio.NewScanner(os.Stdin)
@@ -27,7 +28,7 @@ func main() {
 	}
 
 	cache = pokecache.NewCache(10 * time.Second)
-	pokedex = make(map[string]PokemonResult)
+	pokedexMap = make(map[string]pokedex.PokemonResult)
 
 	commands = map[string]cliCommand{
 		"exit": {
@@ -160,7 +161,7 @@ func commandMap(config *Config) error {
 
 	var res *http.Response
 	var err error
-	var locationAreas LocationAreaSmall
+	var locationAreas pokedex.LocationAreaSmall
 
 	i, ok := cache.Get(config.Next)
 	if !ok {
@@ -177,7 +178,7 @@ func commandMap(config *Config) error {
 		defer res.Body.Close()
 	} else {
 		fmt.Println("Reading from cache...")
-		locationAreas = LocationAreaSmall{}
+		locationAreas = pokedex.LocationAreaSmall{}
 		if err := json.Unmarshal(i.Val, &locationAreas); err != nil {
 			return err
 		}
@@ -204,7 +205,7 @@ func commandMap(config *Config) error {
 func commandMapb(config *Config) error {
 	var res *http.Response
 	var err error
-	var locationAreas LocationAreaSmall
+	var locationAreas pokedex.LocationAreaSmall
 
 	if config.Previous == "" || config.Count == 0 {
 		fmt.Println("you're on the first page")
@@ -227,7 +228,7 @@ func commandMapb(config *Config) error {
 		defer res.Body.Close()
 	} else {
 		fmt.Println("Reading from cache...")
-		locationAreas = LocationAreaSmall{}
+		locationAreas = pokedex.LocationAreaSmall{}
 		if err := json.Unmarshal(i.Val, &locationAreas); err != nil {
 			return err
 		}
@@ -251,7 +252,7 @@ func commandExplore(name string) error {
 	baseURL := "https://pokeapi.co/api/v2/location-area/"
 	fullURL := baseURL + name
 	var pokemonNames []string
-	var locationArea LocationArea
+	var locationArea pokedex.LocationArea
 
 	nameList, ok := cache.Get(fullURL)
 	if !ok {
@@ -312,7 +313,7 @@ func commandCatch(name string) error {
 	if err != nil {
 		return err
 	}
-	var pokemon PokemonResult
+	var pokemon pokedex.PokemonResult
 	decoder := json.NewDecoder(res.Body)
 	err = decoder.Decode(&pokemon)
 	if err != nil {
@@ -327,7 +328,7 @@ func commandCatch(name string) error {
 	if randomInt%3 == 0 {
 		// catch pokemon
 		fmt.Printf("%s was caught!\n", name)
-		pokedex[pokemon.Species.Name] = pokemon
+		pokedexMap[pokemon.Species.Name] = pokemon
 		return nil
 	}
 	fmt.Printf("%s escaped!\n", name)
@@ -335,7 +336,7 @@ func commandCatch(name string) error {
 }
 
 func commandInspect(name string) error {
-	pokemon, ok := pokedex[name]
+	pokemon, ok := pokedexMap[name]
 	if !ok {
 		fmt.Println("You do not have this pokemon")
 		return nil
@@ -359,7 +360,7 @@ func commandInspect(name string) error {
 
 func commandPokedex() error {
 	fmt.Println("Your Pokedex:")
-	for key := range pokedex {
+	for key := range pokedexMap {
 		fmt.Printf(" - %s\n", key)
 	}
 	return nil
